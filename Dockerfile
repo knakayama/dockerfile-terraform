@@ -1,16 +1,14 @@
 FROM alpine:3.4
 
-ENV TERRAFORM_VERSION 0.8.2
+RUN apk add --update wget ca-certificates unzip git bash \
+    && wget -q -O /terraform.zip "$(wget -q https://www.terraform.io/downloads.html -O - | grep -oE 'https://releases\.hashicorp\.com/terraform/.*_linux_amd64.zip')" \
+    && unzip /terraform.zip -d /bin \
+    && apk del --purge wget ca-certificates unzip \
+    && rm -rf /var/cache/apk/* /terraform.zip \
+    && mkdir ~/.aws
 
-RUN apk add --update wget ca-certificates unzip git bash && \
-    wget -q -O /terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" && \
-    unzip /terraform.zip -d /bin && \
-    apk del --purge wget ca-certificates unzip && \
-    rm -rf /var/cache/apk/* /terraform.zip
-
-VOLUME ["/data"]
+VOLUME ["/data", "/root/.aws"]
 WORKDIR /data
-
 ENTRYPOINT ["/bin/terraform"]
 
 CMD ["--help"]
